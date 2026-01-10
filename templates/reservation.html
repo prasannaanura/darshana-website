@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Reservation | StayEasy{% endblock %}
+
+{% block content %}
+<div class="reservation-box">
+    <h2>Book Your Stay</h2>
+
+    <form method="POST">
+        <input type="text" name="name" placeholder="Full name" required>
+        <input type="email" name="email" placeholder="Email address" required>
+
+        <div class="date-row">
+            <div>
+                <label>Check-in</label>
+                <input type="date" name="checkin" required>
+            </div>
+            <div>
+                <label>Check-out</label>
+                <input type="date" name="checkout" required>
+            </div>
+        </div>
+
+        <button type="submit">BOOK</button>
+    </form>
+</div>
+{% endblock %}
