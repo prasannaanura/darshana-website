@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, session
 import sqlite3
 
 app = Flask(__name__)
-app.secret_key = "supersecret123"
+app.secret_key = "mysecret123"
 
 
 def get_db_connection():
@@ -87,9 +87,6 @@ def delete_reservation(id):
     conn.close()
 
     return redirect(url_for("admin"))
-
-
-
 
 
 @app.route("/review")
