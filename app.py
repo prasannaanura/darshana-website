@@ -16,9 +16,9 @@ def home():
     return render_template("home.html")
 
 
-@app.route("/tourism")
+@app.route("/accomodation")
 def tourism():
-    return render_template("tourism.html")
+    return render_template("accomodation.html")
 
 
 @app.route("/events")
