@@ -17,13 +17,13 @@ def home():
 
 
 @app.route("/accomodation")
-def tourism():
+def accomodation():
     return render_template("accomodation.html")
 
 
-@app.route("/events")
-def events():
-    return render_template("events.html")
+@app.route("/service")
+def service():
+    return render_template("service.html")
 
 
 @app.route("/reservation", methods=["GET", "POST"])
