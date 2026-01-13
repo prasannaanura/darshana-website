@@ -35,14 +35,12 @@
             {% endif %}
         </div>
     </nav>
-
     <!-- =====================
          MAIN CONTENT
     ===================== -->
     <main>
         {% block content %}{% endblock %}
     </main>
-
     <!-- =====================
          FOOTER
     ===================== -->
@@ -58,5 +56,7 @@
             <p>&copy; 2026 StayEasy</p>
         </div>
     </footer>
+    
+    <script src="{{ url_for('static', filename='js/reservation.js') }}"></script>
 </body>
 </html>

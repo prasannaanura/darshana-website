@@ -1,27 +1,39 @@
 {% extends "base.html" %}
-
 {% block title %}Reservation | StayEasy{% endblock %}
 
 {% block content %}
+<!-- Remove this line if you don't have the CSS file -->
+<!-- <link rel="stylesheet" href="{{ url_for('static', filename='css/reservation.css') }}"> -->
+
 <div class="reservation-box">
     <h2>Book Your Stay</h2>
-
-    <form method="POST">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="flash-message flash-{{ category }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    <form method="POST" id="bookingForm">
         <input type="text" name="name" placeholder="Full name" required>
         <input type="email" name="email" placeholder="Email address" required>
-
         <div class="date-row">
             <div>
                 <label>Check-in</label>
-                <input type="date" name="checkin" required>
+                <input type="date" name="checkin" id="checkin" required>
             </div>
             <div>
                 <label>Check-out</label>
-                <input type="date" name="checkout" required>
+                <input type="date" name="checkout" id="checkout" required>
             </div>
         </div>
-
+        <div id="dateError" class="error-message"></div>
         <button type="submit">BOOK</button>
     </form>
 </div>
+
+<!-- Remove this line too -->
+<!-- <script src="{{ url_for('static', filename='js/reservation.js') }}"></script> -->
 {% endblock %}

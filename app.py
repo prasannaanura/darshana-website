@@ -1,5 +1,7 @@
-from flask import Flask, render_template, request, redirect, url_for, session
-from flask_mail import Mail, Message
+from flask import Flask, render_template, flash,request, redirect, url_for, session
+from flask_mail import Mail, Message 
+from datetime import datetime
+
 import sqlite3
 
 app = Flask(__name__)
@@ -126,6 +128,31 @@ def reservation():
 
         print(f"📝 Booking data: {name}, {email}, {checkin}, {checkout}")  # Debug 2
 
+        # ✅ SERVER-SIDE DATE VALIDATION
+        try:
+            checkin_date = datetime.strptime(checkin, "%Y-%m-%d").date()
+            checkout_date = datetime.strptime(checkout, "%Y-%m-%d").date()
+            today = datetime.now().date()
+
+            # Check if check-in is in the past
+            if checkin_date < today:
+                print("❌ Validation failed: Check-in date is in the past")
+                flash("Check-in date cannot be in the past", "error")
+                return redirect(url_for('reservation'))
+
+            # Check if checkout is before or equal to checkin
+            if checkout_date <= checkin_date:
+                print("❌ Validation failed: Check-out date must be after check-in date")
+                flash("Check-out date must be after check-in date", "error")
+                return redirect(url_for('reservation'))
+
+            print("✅ Date validation passed")
+
+        except ValueError:
+            print("❌ Validation failed: Invalid date format")
+            flash("Invalid date format", "error")
+            return redirect(url_for('reservation'))
+
         # Save to database
         conn = get_db_connection()
         conn.execute(
@@ -142,7 +169,8 @@ def reservation():
         result = send_booking_notification(name, email, checkin, checkout)
         print(f"📧 Email result: {result}")  # Debug 5
 
-        return f"Thank you {name}, your reservation is confirmed!"
+        flash(f"Thank you {name}, your reservation is confirmed!", "success")
+        return redirect(url_for('reservation'))
 
     return render_template("reservation.html")
 
