@@ -118,16 +118,16 @@ def service():
 @app.route("/reservation", methods=["GET", "POST"])
 def reservation():
     if request.method == "POST":
-        print("🔵 POST request received")
+        print(" POST request received")
         
         name = request.form["name"]
         email = request.form["email"]
         checkin = request.form["checkin"]
         checkout = request.form["checkout"]
 
-        print(f"📝 Booking data: {name}, {email}, {checkin}, {checkout}")
+        print(f" Booking data: {name}, {email}, {checkin}, {checkout}")
 
-        # ✅ SERVER-SIDE DATE VALIDATION
+        # SERVER-SIDE DATE VALIDATION
         try:
             checkin_date = datetime.strptime(checkin, "%Y-%m-%d").date()
             checkout_date = datetime.strptime(checkout, "%Y-%m-%d").date()
@@ -135,24 +135,24 @@ def reservation():
 
             # Check if check-in is in the past
             if checkin_date < today:
-                print("❌ Validation failed: Check-in date is in the past")
+                print("Validation failed: Check-in date is in the past")
                 flash("Check-in date cannot be in the past", "error")
                 return redirect(url_for('reservation'))
 
             # Check if checkout is before or equal to checkin
             if checkout_date <= checkin_date:
-                print("❌ Validation failed: Check-out date must be after check-in date")
+                print(" Validation failed: Check-out date must be after check-in date")
                 flash("Check-out date must be after check-in date", "error")
                 return redirect(url_for('reservation'))
 
-            print("✅ Date validation passed")
+            print(" Date validation passed")
 
         except ValueError:
-            print("❌ Validation failed: Invalid date format")
+            print(" Validation failed: Invalid date format")
             flash("Invalid date format", "error")
             return redirect(url_for('reservation'))
 
-        # ✅ CHECK FOR OVERLAPPING BOOKINGS IN DATABASE
+        #  CHECK FOR OVERLAPPING BOOKINGS IN DATABASE
         conn = get_db_connection()
         
         # Query to find overlapping reservations
@@ -166,11 +166,11 @@ def reservation():
         
         if overlapping:
             conn.close()
-            print("❌ Validation failed: Dates overlap with existing booking")
+            print(" Validation failed: Dates overlap with existing booking")
             flash("Sorry, these dates are already booked. Please choose different dates.", "error")
             return redirect(url_for('reservation'))
         
-        print("✅ No overlapping bookings found")
+        print(" No overlapping bookings found")
 
         # Save to database
         conn.execute(
@@ -180,18 +180,18 @@ def reservation():
         conn.commit()
         conn.close()
 
-        print("💾 Database save complete")
+        print("Database save complete")
 
         # Send email notification
-        print("📧 Attempting to send email...")
+        print("Attempting to send email...")
         result = send_booking_notification(name, email, checkin, checkout)
-        print(f"📧 Email result: {result}")
+        print(f" Email result: {result}")
 
         flash(f"Thank you {name}, your reservation is confirmed!", "success")
         return redirect(url_for('reservation'))
 
     # GET METHOD - Fetch booked dates
-    print("🔍 Fetching booked dates...")
+    print(" Fetching booked dates...")
     conn = get_db_connection()
     reservations = conn.execute("SELECT checkin, checkout FROM reservations").fetchall()
     conn.close()
