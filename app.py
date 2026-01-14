@@ -1,6 +1,6 @@
 from flask import Flask, render_template, flash,request, redirect, url_for, session
 from flask_mail import Mail, Message 
-from datetime import datetime
+from datetime import datetime,timedelta
 
 import sqlite3
 
@@ -93,11 +93,11 @@ StayEasy Hotel Management System
         """
         
         mail.send(msg)
-        print("✅ Email notification sent successfully!")
+        print("Email notification sent successfully!")
         return True
         
     except Exception as e:
-        print(f"❌ Email error: {e}")
+        print(f"Email error: {e}")
         return False
 
 
@@ -115,18 +115,17 @@ def accomodation():
 def service():
     return render_template("service.html")
 
-
 @app.route("/reservation", methods=["GET", "POST"])
 def reservation():
     if request.method == "POST":
-        print("🔵 POST request received")  # Debug 1
+        print("🔵 POST request received")
         
         name = request.form["name"]
         email = request.form["email"]
         checkin = request.form["checkin"]
         checkout = request.form["checkout"]
 
-        print(f"📝 Booking data: {name}, {email}, {checkin}, {checkout}")  # Debug 2
+        print(f"📝 Booking data: {name}, {email}, {checkin}, {checkout}")
 
         # ✅ SERVER-SIDE DATE VALIDATION
         try:
@@ -153,8 +152,27 @@ def reservation():
             flash("Invalid date format", "error")
             return redirect(url_for('reservation'))
 
-        # Save to database
+        # ✅ CHECK FOR OVERLAPPING BOOKINGS IN DATABASE
         conn = get_db_connection()
+        
+        # Query to find overlapping reservations
+        # Two bookings overlap if:
+        # 1. New check-in is before existing check-out AND
+        # 2. New check-out is after existing check-in
+        overlapping = conn.execute("""
+            SELECT * FROM reservations 
+            WHERE (checkin < ? AND checkout > ?)
+        """, (checkout, checkin)).fetchall()
+        
+        if overlapping:
+            conn.close()
+            print("❌ Validation failed: Dates overlap with existing booking")
+            flash("Sorry, these dates are already booked. Please choose different dates.", "error")
+            return redirect(url_for('reservation'))
+        
+        print("✅ No overlapping bookings found")
+
+        # Save to database
         conn.execute(
             "INSERT INTO reservations (name, email, checkin, checkout) VALUES (?, ?, ?, ?)",
             (name, email, checkin, checkout)
@@ -162,17 +180,40 @@ def reservation():
         conn.commit()
         conn.close()
 
-        print("💾 Database save complete")  # Debug 3
+        print("💾 Database save complete")
 
-        # Send email notification to admin
-        print("📧 Attempting to send email...")  # Debug 4
+        # Send email notification
+        print("📧 Attempting to send email...")
         result = send_booking_notification(name, email, checkin, checkout)
-        print(f"📧 Email result: {result}")  # Debug 5
+        print(f"📧 Email result: {result}")
 
         flash(f"Thank you {name}, your reservation is confirmed!", "success")
         return redirect(url_for('reservation'))
 
-    return render_template("reservation.html")
+    # GET METHOD - Fetch booked dates
+    print("🔍 Fetching booked dates...")
+    conn = get_db_connection()
+    reservations = conn.execute("SELECT checkin, checkout FROM reservations").fetchall()
+    conn.close()
+    
+    # Create SET of all booked dates (removes duplicates automatically)
+    booked_dates_set = set()
+    for reservation in reservations:
+        print(f"Processing: {reservation['checkin']} to {reservation['checkout']}")
+        checkin = datetime.strptime(reservation['checkin'], "%Y-%m-%d").date()
+        checkout = datetime.strptime(reservation['checkout'], "%Y-%m-%d").date()
+        
+        # Add all dates between checkin and checkout
+        current_date = checkin
+        while current_date < checkout:
+            booked_dates_set.add(current_date.strftime("%Y-%m-%d"))
+            current_date += timedelta(days=1)
+    
+    # Convert to sorted list for display
+    booked_dates = sorted(list(booked_dates_set))
+    print(f"📅 Booked dates list: {booked_dates}")
+    
+    return render_template("reservation.html", booked_dates=booked_dates)
 
 
 @app.route("/contact")

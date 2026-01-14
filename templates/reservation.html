@@ -2,11 +2,11 @@
 {% block title %}Reservation | StayEasy{% endblock %}
 
 {% block content %}
-<!-- Remove this line if you don't have the CSS file -->
-<!-- <link rel="stylesheet" href="{{ url_for('static', filename='css/reservation.css') }}"> -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/reservation.css') }}">
 
 <div class="reservation-box">
     <h2>Book Your Stay</h2>
+    
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             {% for category, message in messages %}
@@ -16,6 +16,7 @@
             {% endfor %}
         {% endif %}
     {% endwith %}
+    
     <form method="POST" id="bookingForm">
         <input type="text" name="name" placeholder="Full name" required>
         <input type="email" name="email" placeholder="Email address" required>
@@ -32,8 +33,34 @@
         <div id="dateError" class="error-message"></div>
         <button type="submit">BOOK</button>
     </form>
+    
+    <!-- ✅ AVAILABILITY DISPLAY -->
+    {% if booked_dates %}
+    <div style="margin-top: 20px; padding: 15px; background: #fff3e0; border-radius: 8px; border: 2px solid #ff9800;">
+        <h3 style="margin-bottom: 10px; color: #e65100; font-size: 16px;">📅 Booked Dates:</h3>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+            {% for date in booked_dates %}
+                <span style="background: #ffcdd2; color: #c62828; padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: bold; border: 1px solid #ef5350;">
+                    {{ date }}
+                </span>
+            {% endfor %}
+        </div>
+        <p style="margin-top: 12px; font-size: 13px; color: #d84315; font-weight: 500;">
+            ⚠️ These dates are unavailable. Please choose different dates.
+        </p>
+    </div>
+    {% else %}
+    <div style="margin-top: 20px; padding: 15px; background: #e8f5e9; border-radius: 8px; border: 2px solid #4caf50;">
+        <p style="margin: 0; color: #2e7d32; font-weight: bold; font-size: 14px;">
+            ✅ All dates are currently available for booking!
+        </p>
+    </div>
+    {% endif %}
 </div>
 
-<!-- Remove this line too -->
-<!-- <script src="{{ url_for('static', filename='js/reservation.js') }}"></script> -->
+<!-- Pass booked dates to JavaScript -->
+<script>
+    const bookedDates = {{ booked_dates | tojson }};
+</script>
+<script src="{{ url_for('static', filename='js/reservation.js') }}"></script>
 {% endblock %}

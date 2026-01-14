@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Set minimum date to today
     const today = new Date();
-    today.setHours(0, 0, 0, 0); // Reset time for accurate comparison
+    today.setHours(0, 0, 0, 0);
     const todayStr = today.toISOString().split('T')[0];
     
     checkinInput.setAttribute('min', todayStr);
@@ -14,18 +14,16 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Validate dates function
     function validateDates() {
-        // Clear previous errors
         errorDiv.style.display = 'none';
         errorDiv.textContent = '';
         
         if (!checkinInput.value || !checkoutInput.value) {
-            return true; // Don't validate if dates aren't filled
+            return true;
         }
         
         const checkinDate = new Date(checkinInput.value);
         const checkoutDate = new Date(checkoutInput.value);
         
-        // Reset time for accurate date-only comparison
         checkinDate.setHours(0, 0, 0, 0);
         checkoutDate.setHours(0, 0, 0, 0);
         
@@ -34,6 +32,25 @@ document.addEventListener('DOMContentLoaded', function() {
             errorDiv.textContent = '❌ Check-in date cannot be in the past';
             errorDiv.style.display = 'block';
             return false;
+        }
+        
+        // ✅ CHECK IF DATES OVERLAP WITH BOOKED DATES
+        if (typeof bookedDates !== 'undefined' && bookedDates.length > 0) {
+            const selectedCheckin = checkinInput.value;
+            const selectedCheckout = checkoutInput.value;
+            
+            let current = new Date(selectedCheckin);
+            const end = new Date(selectedCheckout);
+            
+            while (current < end) {
+                const dateStr = current.toISOString().split('T')[0];
+                if (bookedDates.includes(dateStr)) {
+                    errorDiv.textContent = '❌ Selected dates are not available. Please choose different dates.';
+                    errorDiv.style.display = 'block';
+                    return false;
+                }
+                current.setDate(current.getDate() + 1);
+            }
         }
         
         // Check if check-out is before or equal to check-in
@@ -49,7 +66,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Validate on check-in change
     checkinInput.addEventListener('change', function() {
         validateDates();
-        // Update checkout minimum date to day after checkin
         if (checkinInput.value) {
             const nextDay = new Date(checkinInput.value);
             nextDay.setDate(nextDay.getDate() + 1);
